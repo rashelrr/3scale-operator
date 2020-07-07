@@ -1521,6 +1521,13 @@ objects:
             - -c
             - bundle exec rake boot openshift:post_deploy
             containerName: system-master
+            env:
+            - name: ORACLE_SYSTEM_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: ORACLE_SYSTEM_PASSWORD
+                  name: system-database
+                  optional: true
           failurePolicy: Abort
         pre:
           execNewPod:
@@ -1784,6 +1791,12 @@ objects:
                 secretKeyRef:
                   key: MASTER_ACCESS_TOKEN
                   name: system-seed
+            - name: ORACLE_SYSTEM_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: ORACLE_SYSTEM_PASSWORD
+                  name: system-database
+                  optional: true
             - name: FILE_UPLOAD_STORAGE
               valueFrom:
                 configMapKeyRef:
