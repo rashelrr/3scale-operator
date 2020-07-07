@@ -239,6 +239,15 @@ func (system *System) buildSystemAppPreHookEnv() []v1.EnvVar {
 	result = append(result, baseEnv...)
 	result = append(result,
 		helper.EnvVarFromSecret("MASTER_ACCESS_TOKEN", SystemSecretSystemSeedSecretName, SystemSecretSystemSeedMasterAccessTokenFieldName),
+		helper.EnvVarFromSecretOptional("ORACLE_SYSTEM_PASSWORD", SystemSecretSystemDatabaseSecretName, "ORACLE_SYSTEM_PASSWORD"),
+	)
+	return result
+}
+
+func (system *System) buildSystemAppPostHookEnv() []v1.EnvVar {
+	result := []v1.EnvVar{}
+	result = append(result,
+		helper.EnvVarFromSecretOptional("ORACLE_SYSTEM_PASSWORD", SystemSecretSystemDatabaseSecretName, "ORACLE_SYSTEM_PASSWORD"),
 	)
 	return result
 }
@@ -502,7 +511,11 @@ func (system *System) AppDeploymentConfig() *appsv1.DeploymentConfig {
 						FailurePolicy: appsv1.LifecycleHookFailurePolicyAbort,
 						ExecNewPod: &appsv1.ExecNewPodHook{
 							Command:       []string{"bash", "-c", "bundle exec rake boot openshift:post_deploy"},
-							ContainerName: "system-master"}}},
+							ContainerName: "system-master",
+							Env:           system.buildSystemAppPostHookEnv(),
+						},
+					},
+				},
 			},
 			MinReadySeconds: 0,
 			Triggers: appsv1.DeploymentTriggerPolicies{
